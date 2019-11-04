@@ -2,9 +2,9 @@
 
 import urllib.request
 import os
-from typing import Optional
 import calendar
 import argparse
+from typing import Optional
 
 import requests
 from bs4 import BeautifulSoup
@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup
 
 def _get_url(month: int, year: int) -> str:
     """
-    Генерация ссылки в требуемом для скачивания с сайта smashingmagazine.com формате
+    Генерация ссылки для скачивания с сайта smashingmagazine.com в требуемом формате
     :param month: порядковый номер месяца от 1 до 12
     :param year: год в формате YYYY, например 2018
     :return: возвращает ссылку в строковом формате в случае корректных входных параметров
@@ -26,12 +26,16 @@ def _get_url(month: int, year: int) -> str:
             url = f'https://www.smashingmagazine.com/{str(year)}/0{str(month-1)}/desktop-wallpaper-calendars-{number_to_month}-{str(year)}/'
         else:
             url = f'https://www.smashingmagazine.com/{str(year)}/{str(month-1)}/desktop-wallpaper-calendars-{number_to_month}-{str(year)}/'
-        print(url)
         return url
     raise ValueError("Incorrect value of month.")
 
 
 def _get_html(url: str) -> str:
+    """
+    Возвращает содержимое GET-запроса в Unicode
+    :param url: url запрашиваемой страницы, str
+    :return: содержимое GET-запроса, str
+    """
     r = requests.get(url)
     return r.text
 
@@ -41,7 +45,7 @@ def _create_dir(month: int, year: int, resolution: str = '1920x1080') -> Optiona
     Создание директории формата current_path/YYYY/MM/RESOLUTION
     :param month: порядковый номер месяца от 1 до 12
     :param year: год в формате YYYY, например 2018
-    :param resolution: разрешение картинки в формате ширина x высота, например 1920x1080
+    :param resolution: разрешение изображения в формате ширина x высота, например 1920x1080
     :return: возвращает абсолютный путь к созданной директории в строковом формате
     """
     current_path = os.path.dirname(os.path.abspath(__file__))
@@ -57,24 +61,24 @@ def _create_dir(month: int, year: int, resolution: str = '1920x1080') -> Optiona
 
 def download_pictures(month: int, year: int, resolution: str) -> None:
     """
-    Сохранение файлов заданного разрешения за указанные месяц и год в текущей директории
+    Сохранение изображений заданного разрешения за указанные месяц и год в текущей директории.
+    Выводит сообщение о количестве сохраненных изображений
     :param month: порядковый номер месяца от 1 до 12
     :param year: год в формате YYYY, например 2018
-    :param resolution: разрешение картинки в формате ширина x высота, например 1920x1080
+    :param resolution: разрешение изображения в формате ширина x высота, например 1920x1080
     :return: None
     """
     url = _get_url(month, year)
     html = _get_html(url)
     soup = BeautifulSoup(html, 'lxml')
     uls = soup.find_all('ul')
-    counter = 0
+    counter = 1
     for ul in uls:
         for li in ul.find_all('li'):
             if 'with calendar' in li.text or 'without calendar' in li.text:
                 for l in li.find_all('a', href=True):
                     image_url: str = l.get('href')
                     if resolution in image_url:
-                        print(image_url)
                         img_file_name_jpg = f'image_{resolution}_{counter}.jpg'
                         img_file_name_png = f'image_{resolution}_{counter}.png'
                         path_to_jpg_file = os.path.join(_create_dir(month, year, resolution), img_file_name_jpg)
@@ -84,10 +88,12 @@ def download_pictures(month: int, year: int, resolution: str) -> None:
                         elif image_url.endswith('png'):
                             urllib.request.urlretrieve(image_url, path_to_png_file)
                         counter += 1
+    print(f'Количество скачанных изображений: {counter-1} шт.')
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Утилита позволяет сохранить все картинки заданного разрешения за указанный месяц и год с сайта https://www.smashingmagazine.com/')
+    parser = argparse.ArgumentParser(description='Утилита позволяет сохранить все изображения заданного разрешения за '
+                                                 'указанный месяц и год с сайта https://www.smashingmagazine.com/')
     parser.add_argument("-m", "--month", action="store",
                        help="month, from 1 to 12", required=True)
     parser.add_argument("-y", "--year", action="store",
@@ -100,4 +106,3 @@ if __name__ == '__main__':
     resolution = args.resolution
 
     download_pictures(month, year, resolution)
-    
