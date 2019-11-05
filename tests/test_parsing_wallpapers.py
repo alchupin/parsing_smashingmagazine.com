@@ -1,9 +1,10 @@
-import pytest
-import responses
 import os
 import shutil
 from pathlib import Path
 import datetime
+
+import pytest
+import responses
 
 from parsing_wallpapers import _get_url, _create_dir, _get_html
 
