@@ -12,7 +12,7 @@ foo@bar:~$ ./parsing_wallpapers.py --month=7 --year=2017 --resolution='1920x1080
 ```
 та же команда:
 ```console
-foo@bar:~$  ./parsing_wallpapers.py -m=7 -y=2017
+foo@bar:~$ ./parsing_wallpapers.py -m=7 -y=2017
 ```
 В результате работы будет создан путь формата `current_dir/YYYY/MM/RESOLUTION` и в директорию скачаны изображения.
 
